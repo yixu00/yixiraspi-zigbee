@@ -12,12 +12,22 @@
 #define DEFAULT_IDLE_GAP 0.12
 #define DEFAULT_READ_TIMEOUT 0.05
 #define DEFAULT_FBDEV "/dev/fb0"
+#define DEFAULT_ONENET_PRODUCT_ID "H9y2Eg83QV"
+#define DEFAULT_ONENET_HOST "mqtts.heclouds.com"
+#define DEFAULT_ONENET_PORT 1883
+#define DEFAULT_ONENET_DEVICE_NAME "yixizigbee"
+#define DEFAULT_ONENET_ACCESS_KEY "y++jD7G3Z7PLa7W1+2drtfeX2X+jgYtTH8tt65Vdhzs="
 
 typedef struct {
     const char *port;
     int baudrate;
     double idle_gap;
     double read_timeout;
+    const char *onenet_product_id;
+    const char *onenet_device_name;
+    const char *onenet_access_key;
+    const char *onenet_host;
+    int onenet_port;
 } uart_options_t;
 
 typedef struct {

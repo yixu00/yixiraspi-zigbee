@@ -212,11 +212,22 @@ void uart_options_init(uart_options_t *options) {
     options->baudrate = DEFAULT_BAUDRATE;
     options->idle_gap = DEFAULT_IDLE_GAP;
     options->read_timeout = DEFAULT_READ_TIMEOUT;
+    options->onenet_product_id = DEFAULT_ONENET_PRODUCT_ID;
+    options->onenet_device_name = DEFAULT_ONENET_DEVICE_NAME;
+    options->onenet_access_key = DEFAULT_ONENET_ACCESS_KEY;
+    options->onenet_host = DEFAULT_ONENET_HOST;
+    options->onenet_port = DEFAULT_ONENET_PORT;
 }
 
 void uart_print_usage(const char *program) {
-    printf("Usage: %s [port] [--baudrate N] [--idle-gap SEC] [--read-timeout SEC]\n", program);
+    printf("Usage: %s [port] [--baudrate N] [--idle-gap SEC] [--read-timeout SEC] [--onenet-product-id PID]\n", program);
     printf("Receive ZigBee UART data and visualize it with LVGL.\n");
+    printf("OneNET MQTT options:\n");
+    printf("  --onenet-product-id PID    OneNET product ID, default: %s\n", DEFAULT_ONENET_PRODUCT_ID);
+    printf("  --onenet-device-id NAME    Device name, default: %s\n", DEFAULT_ONENET_DEVICE_NAME);
+    printf("  --onenet-access-key KEY    Access key, default uses built-in value\n");
+    printf("  --onenet-host HOST         MQTT host, default: %s\n", DEFAULT_ONENET_HOST);
+    printf("  --onenet-port PORT         MQTT port, default: %d\n", DEFAULT_ONENET_PORT);
 }
 
 bool uart_parse_args(int argc, char **argv, uart_options_t *options) {
@@ -246,6 +257,45 @@ bool uart_parse_args(int argc, char **argv, uart_options_t *options) {
         if (strcmp(argv[i], "--read-timeout") == 0) {
             if (i + 1 >= argc || !parse_double(argv[++i], &options->read_timeout)) {
                 fprintf(stderr, "Invalid --read-timeout value\n");
+                return false;
+            }
+            continue;
+        }
+        if (strcmp(argv[i], "--onenet-product-id") == 0) {
+            if (i + 1 >= argc || argv[i + 1][0] == '\0') {
+                fprintf(stderr, "Invalid --onenet-product-id value\n");
+                return false;
+            }
+            options->onenet_product_id = argv[++i];
+            continue;
+        }
+        if (strcmp(argv[i], "--onenet-device-id") == 0) {
+            if (i + 1 >= argc || argv[i + 1][0] == '\0') {
+                fprintf(stderr, "Invalid --onenet-device-id value\n");
+                return false;
+            }
+            options->onenet_device_name = argv[++i];
+            continue;
+        }
+        if (strcmp(argv[i], "--onenet-access-key") == 0) {
+            if (i + 1 >= argc || argv[i + 1][0] == '\0') {
+                fprintf(stderr, "Invalid --onenet-access-key value\n");
+                return false;
+            }
+            options->onenet_access_key = argv[++i];
+            continue;
+        }
+        if (strcmp(argv[i], "--onenet-host") == 0) {
+            if (i + 1 >= argc || argv[i + 1][0] == '\0') {
+                fprintf(stderr, "Invalid --onenet-host value\n");
+                return false;
+            }
+            options->onenet_host = argv[++i];
+            continue;
+        }
+        if (strcmp(argv[i], "--onenet-port") == 0) {
+            if (i + 1 >= argc || !parse_int(argv[++i], &options->onenet_port)) {
+                fprintf(stderr, "Invalid --onenet-port value\n");
                 return false;
             }
             continue;

@@ -67,19 +67,22 @@ static void update_status(app_ui_t *ui) {
     bool running = false;
     bool error = false;
     char error_text[128];
+    const char *onenet_status;
 
     uart_reader_get_status(ui->reader, &frame_count, &running, &error, error_text, sizeof(error_text));
+    onenet_status = onenet_uploader_status(&ui->uploader);
 
     if (error) {
         snprintf(
             ui->status_text,
             sizeof(ui->status_text),
-            "Port: %s @ %d bps | Display: %s | Status: %s | Frames: %lu",
+            "Port: %s @ %d bps | Display: %s | Status: %s | Frames: %lu | OneNET: %s",
             ui->options.port,
             ui->options.baudrate,
             ui->fbdev_path,
             error_text,
-            frame_count
+            frame_count,
+            onenet_status
         );
         lv_label_set_text(ui->status_label, ui->status_text);
         return;
@@ -88,12 +91,13 @@ static void update_status(app_ui_t *ui) {
     snprintf(
         ui->status_text,
         sizeof(ui->status_text),
-        "Port: %s @ %d bps | Display: %s | Status: %s | Frames: %lu",
+        "Port: %s @ %d bps | Display: %s | Status: %s | Frames: %lu | OneNET: %s",
         ui->options.port,
         ui->options.baudrate,
         ui->fbdev_path,
         running ? "listening" : "stopped",
-        frame_count
+        frame_count,
+        onenet_status
     );
     lv_label_set_text(ui->status_label, ui->status_text);
 }
@@ -113,6 +117,7 @@ void app_ui_init(app_ui_t *ui, frame_queue_t *queue, uart_reader_t *reader, cons
     ui->fbdev_path = fbdev_path;
     ui->chart_min = 0.0;
     ui->chart_max = 100.0;
+    onenet_uploader_init(&ui->uploader, options);
 
     screen = lv_screen_active();
     container = lv_obj_create(screen);
@@ -172,6 +177,7 @@ void app_ui_process(app_ui_t *ui) {
     while (frame_queue_pop(ui->queue, &message)) {
         lv_label_set_text(ui->latest_frame_label, message.text);
         append_log(ui, message.text);
+        onenet_uploader_publish_frame(&ui->uploader, message.text);
 
         if (message.has_numeric_value) {
             update_chart_range(ui, message.numeric_value);
@@ -179,4 +185,8 @@ void app_ui_process(app_ui_t *ui) {
             lv_chart_refresh(ui->chart);
         }
     }
+}
+
+void app_ui_cleanup(app_ui_t *ui) {
+    onenet_uploader_cleanup(&ui->uploader);
 }

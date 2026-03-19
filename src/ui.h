@@ -6,6 +6,7 @@
 #include "lvgl/lvgl.h"
 
 #include "frame_queue.h"
+#include "onenet_uploader.h"
 #include "uart_reader.h"
 
 typedef struct {
@@ -17,8 +18,9 @@ typedef struct {
     frame_queue_t *queue;
     uart_reader_t *reader;
     uart_options_t options;
+    onenet_uploader_t uploader;
     const char *fbdev_path;
-    char status_text[256];
+    char status_text[448];
     char log_text[FRAME_BUFFER_CAPACITY * 6];
     double chart_min;
     double chart_max;
@@ -26,5 +28,6 @@ typedef struct {
 
 void app_ui_init(app_ui_t *ui, frame_queue_t *queue, uart_reader_t *reader, const uart_options_t *options, const char *fbdev_path);
 void app_ui_process(app_ui_t *ui);
+void app_ui_cleanup(app_ui_t *ui);
 
 #endif

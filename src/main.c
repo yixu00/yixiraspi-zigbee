@@ -95,6 +95,7 @@ int main(int argc, char **argv) {
 
     uart_reader_join(&reader);
     app_ui_process(&ui);
+    app_ui_cleanup(&ui);
     frame_queue_destroy(&queue);
     return 0;
 }
