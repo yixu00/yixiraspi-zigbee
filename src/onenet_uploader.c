@@ -583,9 +583,14 @@ static bool parse_labeled_value(const char *text, const char *label, double *val
     return false;
 }
 
-bool onenet_extract_measurements(const char *text, double *temperature, double *humidity) {
+bool onenet_extract_measurements(const char *text, double *temperature, double *humidity, double *light) {
+    if (text == NULL || temperature == NULL || humidity == NULL || light == NULL) {
+        return false;
+    }
+
     return parse_labeled_value(text, "Temp:", temperature)
-        && parse_labeled_value(text, "Humi:", humidity);
+        && parse_labeled_value(text, "Humi:", humidity)
+        && parse_labeled_value(text, "Light:", light);
 }
 
 void onenet_uploader_init(onenet_uploader_t *uploader, const uart_options_t *options) {
@@ -617,24 +622,35 @@ void onenet_uploader_cleanup(onenet_uploader_t *uploader) {
 bool onenet_uploader_publish_frame(onenet_uploader_t *uploader, const char *frame_text) {
     double temperature;
     double humidity;
+    double light;
     char payload[256];
+    int payload_length;
 
+    if (uploader == NULL || frame_text == NULL) {
+        return false;
+    }
     if (!uploader->enabled) {
         return false;
     }
-    if (!onenet_extract_measurements(frame_text, &temperature, &humidity)) {
-        set_error(uploader, "OneNET waiting for two numeric values");
+    if (!onenet_extract_measurements(frame_text, &temperature, &humidity, &light)) {
+        set_error(uploader, "OneNET waiting for temp/humi/light values");
         return false;
     }
 
-    snprintf(
+    payload_length = snprintf(
         payload,
         sizeof(payload),
-        "{\"id\":%u,\"dp\":{\"temperature\":[{\"v\":%.2f}],\"humidity\":[{\"v\":%.2f}],\"light\":[{\"v\":0}]}}",
+        "{\"id\":%u,\"dp\":{\"temperature\":[{\"v\":%.2f}],\"humidity\":[{\"v\":%.2f}],\"light\":[{\"v\":%.2f}]}}",
         uploader->next_message_id++,
         temperature,
-        humidity
+        humidity,
+        light
     );
+
+    if (payload_length < 0 || (size_t)payload_length >= sizeof(payload)) {
+        set_error(uploader, "OneNET payload overflow");
+        return false;
+    }
 
     return mqtt_publish(uploader, payload);
 }

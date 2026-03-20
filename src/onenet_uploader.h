@@ -24,6 +24,6 @@ void onenet_uploader_init(onenet_uploader_t *uploader, const uart_options_t *opt
 void onenet_uploader_cleanup(onenet_uploader_t *uploader);
 bool onenet_uploader_publish_frame(onenet_uploader_t *uploader, const char *frame_text);
 const char *onenet_uploader_status(const onenet_uploader_t *uploader);
-bool onenet_extract_measurements(const char *text, double *temperature, double *humidity);
+bool onenet_extract_measurements(const char *text, double *temperature, double *humidity, double *light);
 
 #endif
